@@ -275,7 +275,7 @@ function choosePASFiles(type) {
 define(function () {
 
   // Use this as the default solver url
-  window.PASURL = "http://localhost:5001";
+  window.PASURL = "http://45.113.232.43:5001";
 
   // Use a flag to only insert styles once
   window.PASSolverStyled = false;
