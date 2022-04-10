@@ -78,6 +78,15 @@ function getAllPlanner() {
             var args = package["endpoint"]["services"]["solve"]["args"]
             window.paramatersPAS = args
             var newElement = "";
+
+
+            // Display Description
+            newElement += ' <div class="form-group">';
+            newElement += '<label for="solverPASSelectionDes" class="col-sm-4 control-label">Description</label>';
+            newElement += '<div class="col-sm-5">';
+            newElement += '<small id="solverPASSelectionDes" class="form-text text-muted">'+package["description"]+'</small>'
+            newElement += '</div> </div>';
+
             for (const parameter of args) {
               if (parameter["name"] != "domain" && parameter["name"] != "problem") {
 
