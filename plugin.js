@@ -83,7 +83,7 @@ function getAllPlanner() {
             // Display Description
             newElement += ' <div class="form-group">';
             newElement += '<label for="solverPASSelectionDes" class="col-sm-4 control-label">Description</label>';
-            newElement += '<div class="col-sm-5">';
+            newElement += '<div class="col-sm-5 form-control-static">';
             newElement += '<small id="solverPASSelectionDes" class="form-text text-muted">'+package["description"]+'</small>'
             newElement += '</div> </div>';
 
