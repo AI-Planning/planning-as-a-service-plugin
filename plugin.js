@@ -56,8 +56,8 @@ function getAllPlanner() {
   })
     .done(function (res) {
       var option = ""
-      window.PAS_PACKAGES = res;
-      for (const package of res) {
+      window.PAS_PACKAGES = Object.values(res);
+      for (const package of window.PAS_PACKAGES) {
         option += "<option value=\"" + package["package_name"] + "\">" + package["name"] + "</option>\n";
 
       }
@@ -284,7 +284,7 @@ function choosePASFiles(type) {
 define(function () {
 
   // Use this as the default solver url
-  window.PASURL = "http://45.113.232.43:5001";
+  window.PASURL = "https://paas-uom.org:5001";
 
   // Use a flag to only insert styles once
   window.PASSolverStyled = false;
