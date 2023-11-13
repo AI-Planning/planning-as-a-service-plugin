@@ -297,21 +297,21 @@ define(function () {
 
   return {
 
-    name: "Planning as service plugin",
+    name: "Planning-as-a-Service Plugin",
     author: "Christian Muise, Nir Lipovetzky, Yi Ding",
     email: "nir.lipovetzky@unimelb.edu.au",
-    description: "Plugin to call the solver provided by Planning-as-a-solver",
+    description: "Plugin to call the solver provided by Planning-as-a-Service",
 
     initialize: function () {
       // This will be called whenever the plugin is loaded or enabled
 
       // add menu item on the top menu
-      window.add_menu_button('PlanningAsService', 'pasMenuItem', 'glyphicon-dashboard', "choosePASFiles('PlanningAsService')");
-      window.register_file_chooser('PlanningAsService',
+      window.add_menu_button('Solver', 'pasMenuItem', 'glyphicon-dashboard', "choosePASFiles('PaaS')");
+      window.register_file_chooser('PaaS',
         {
           showChoice: function () {
 
-            window.action_type = 'PlanningAsService'
+            window.action_type = 'PaaS'
             $('#plannerPASURL').val(window.PASURL);
           },
           selectChoice: runPAS
