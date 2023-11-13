@@ -57,6 +57,12 @@ function getAllPlanner() {
     .done(function (res) {
       var option = ""
       window.PAS_PACKAGES = Object.values(res);
+      //sort by name, as this is the option shown in the solver list
+      window.PAS_PACKAGES = window.PAS_PACKAGES.sort((a, b) => {
+        if (a.name < b.name) {
+          return -1;
+        }
+      });
       for (const package of window.PAS_PACKAGES) {
         option += "<option value=\"" + package["package_name"] + "\">" + package["name"] + "</option>\n";
 
