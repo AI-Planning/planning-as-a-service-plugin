@@ -405,6 +405,12 @@ define(function () {
   // Use a flag to only insert styles once
   window.PASSolverStyled = false;
 
+  // Create a store for the plans that are computed
+  window.plans = {};
+
+  // Use a flag to only insert styles once
+  window.solverStyled = false;
+
   return {
 
     name: "Planning-as-a-Service Plugin",
@@ -430,6 +436,12 @@ define(function () {
       if (!(window.PASSolverStyled)) {
         $('body').append(PAS_MODEL);
         window.PASSolverStyled = true;
+      }
+
+      if (!(window.solverStyled)) {
+        $('body').append(SOLVER_OUTPUT_MODAL);
+        window.inject_styles(SOLVER_STYLE);
+        window.solverStyled = true;
       }
 
       getAllPlanner();
