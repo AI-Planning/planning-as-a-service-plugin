@@ -48,6 +48,116 @@ var PAS_MODEL = `
 </div>
 `
 
+var SOLVER_STYLE = "\
+.plan-list, .plan-display-action {\
+    display: inline-block;\
+}\
+\
+.plan-display-action {\
+    margin-left: 26px;\
+    padding-right: 52px;\
+}\
+\
+.plan-display {\
+    margin-left: 26px;\
+    margin-top: 13px;\
+}\
+";
+
+var SOLVER_OUTPUT_MODAL = "\
+<div class=\"modal fade\" id=\"planOutputModal\" tabindex=\"-1\" role=\"dialog\" aria-labelledby=\"planOutputModalLabel\" aria-hidden=\"true\">\
+  <div class=\"modal-dialog modal-lg\">\
+    <div class=\"modal-content\">\
+      <div class=\"modal-header\">\
+        <button type=\"button\" class=\"close\" data-dismiss=\"modal\"><span aria-hidden=\"true\">&times;</span><span class=\"sr-only\">Close</span></button>\
+        <h4 class=\"modal-title\" id=\"planOutputModalLabel\">Solver Output</h4>\
+      </div>\
+      <div class=\"modal-body\">\
+      <pre id=\"solver-raw-output\" style=\"max-height:550px\">\
+      </pre>\
+      </div>\
+      <div class=\"modal-footer\">\
+        <button type=\"button\" class=\"btn btn-default\" data-dismiss=\"modal\">Close</button>\
+      </div>\
+    </div>\
+  </div>\
+</div>\
+";
+
+function showPlan(res) {
+
+  var tab_name;
+  if (res['status'] === 'ok')
+      tab_name = 'Plan (' + (Object.keys(window.plans).length + 1) + ')';
+  else
+      tab_name = 'Error (' + (Object.keys(window.plans).length + 1) + ')';
+
+  window.new_tab(tab_name, function(editor_name) {
+      var plan_html = '';
+      window.plans[editor_name] = res.result;
+
+      if (res['status'] === 'ok') {
+
+          var cost_txt = '';
+          if (res.cost)
+              cost_txt = ' Cost: ' + res.cost;
+
+          plan_html += '<div class=\"plan-display\">';
+          plan_html += '<h2>Found Plan (<a href=\"#\" onclick=\"showSolverOutput(\''+editor_name+'\')\">output</a>)'+cost_txt+'</h2>';
+
+          plan_html += '<div class=\"list-group plan-list left\">';
+          for (var i = 0; i < res.result.plan.length; i++) {
+              var act_name = '';
+              if (res.result.type === 'simple')
+                  act_name = res.result.plan[i];
+              else
+                  act_name = res.result.plan[i].name;
+              plan_html += '<a href=\"#\" onclick=\"showAction(\'' + editor_name + '\', ' + i + ')\" class=\"list-group-item\">' + act_name + '</a>';
+          }
+          plan_html += '</div>';
+
+          if (res.result.type === 'full') {
+              plan_html += '<pre class=\"plan-display-action well\">';
+              plan_html += '</pre>';
+          }
+
+          plan_html += '</div>';
+
+      } else {
+
+          plan_html += '<div class=\"plan-display\">\n';
+
+          plan_html += '<pre class=\"plan-display-action well\">\n';
+          if (res['result']['parse_status'] === 'err')
+              plan_html += res['result']['error'];
+          else
+              plan_html += JSON.stringify(res['result'], null, 2);
+          plan_html += '</pre>';
+      }
+
+      $('#' + editor_name).html(plan_html);
+
+      if (res['status'] === 'ok')
+          showAction(editor_name, 0);
+  });
+
+}
+
+function showSolverOutput(editor) {
+  $('#solver-raw-output').html(window.plans[editor].output);
+  $('#planOutputModal').modal('toggle');
+}
+
+function showAction(editor, action) {
+  $('#' + editor + ' .plan-list a').removeClass('active');
+  $('#' + editor + ' .plan-list a').eq(action).addClass('active');
+  if (window.plans[editor].type === 'full') {
+      var action_text = window.plans[editor].plan[action].action.replace(/\n/g, '<br />');
+      $('#' + editor + ' .plan-display-action').html(action_text);
+  }
+}
+
+
 function getAllPlanner() {
   $.ajax({
     url: window.PASURL + "/package",
