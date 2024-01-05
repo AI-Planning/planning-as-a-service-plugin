@@ -400,7 +400,7 @@ function choosePASFiles(type) {
 define(function () {
 
   // Use this as the default solver url
-  window.PASURL = "https://paas-uom.org:5001";
+  window.PASURL = "https://solver.planning.domains:5001";
 
   // Use a flag to only insert styles once
   window.PASSolverStyled = false;
