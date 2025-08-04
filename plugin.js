@@ -23,15 +23,22 @@ var PAS_MODEL = `
               <select id="problemPASSelection" class="form-control file-selection">
               </select>
             </div>
-          </div>     
+          </div>
+          <div class="form-group hidden" id="planPASSelectionGroup">
+            <label for="planPASSelection" class="col-sm-4 control-label">Plan</label>
+            <div class="col-sm-5">
+              <select id="planPASSelection" class="form-control file-selection">
+              </select>
+            </div>
+          </div>
           <div class="form-group">
           <label for="solverPASSelection" class="col-sm-4 control-label">Solver</label>
           <div class="col-sm-5">
             <select id="solverPASSelection" class="form-control file-selection">
             </select>
           </div>
-          </div> 
-          
+          </div>
+
           <div id="parametersPAS">
           </div>
         </form>
@@ -43,7 +50,7 @@ var PAS_MODEL = `
         <button type="button" class="btn btn-default"  data-dismiss="modal">Cancel</button>
         </div>
       </div>
-    
+
   </div>
 </div>
 `
@@ -159,6 +166,11 @@ function showAction(editor, action) {
 
 
 function getAllPlanner() {
+
+  // Clear things out first
+  $('#solverPASSelection').empty();
+  $('#solverPASSelection').off('change');
+
   $.ajax({
     url: window.PASURL + "/package",
     type: "GET",
@@ -178,7 +190,6 @@ function getAllPlanner() {
 
       }
       $('#solverPASSelection').append(option);
-      // Store the current planner paramerters list
       var activePackageName = $('#solverPASSelection').find(':selected').val();
       for (const package of window.PAS_PACKAGES) {
         if (package["package_name"] == activePackageName) {
@@ -188,11 +199,18 @@ function getAllPlanner() {
       }
 
       $('#solverPASSelection').on('change', function (e) {
+        $('#planPASSelectionGroup').addClass('hidden');
         var packageName = this.value;
         for (const package of window.PAS_PACKAGES) {
           if (package["package_name"] == packageName) {
-            var args = package["endpoint"]["services"]["solve"]["args"]
-            window.paramatersPAS = args
+            var args = [];
+            if (package["endpoint"]["services"].hasOwnProperty("validate")) {
+              args = package["endpoint"]["services"]["validate"]["args"];
+              $('#planPASSelectionGroup').removeClass('hidden');
+            } else {
+              args = package["endpoint"]["services"]["solve"]["args"];
+            }
+            window.paramatersPAS = args;
             var newElement = "";
 
 
@@ -204,26 +222,10 @@ function getAllPlanner() {
             newElement += '</div> </div>';
 
             for (const parameter of args) {
-              if (parameter["name"] != "domain" && parameter["name"] != "problem") {
 
-                if (parameter["type"] != "categorical") {
+              if (parameter["name"] != "domain" && parameter["name"] != "problem" && parameter["name"] != "plan") {
 
-
-                  newElement += ' <div class="form-group">';
-                  newElement += '<label for="' + parameter["name"] + 'PAS" class="col-sm-4 control-label">' + parameter["name"] + '</label>';
-                  newElement += '<div class="col-sm-5">';
-                  if (parameter["default"]) {
-                    newElement += '<input type="text" class="form-control" id="' + parameter["name"] + 'PAS" value="' + parameter["default"] + '">';
-                  } else {
-                    newElement += '<input type="text" class="form-control" id="' + parameter["name"] + 'PAS">';
-                  }
-                  newElement += '<small id="' + parameter["name"] + 'HelpBlock" class="form-text text-muted">';
-                  newElement += "Type: " + parameter["type"];
-                  newElement += '</small>';
-                  newElement += '</div> </div>'
-
-
-                } else {
+                if (parameter["type"] == "categorical") {
 
                   newElement += ' <div class="form-group">';
                   newElement += '<label for="' + parameter["name"] + 'PAS" class="col-sm-4 control-label">' + parameter["name"] + '</label>';
@@ -241,10 +243,24 @@ function getAllPlanner() {
                   }
                   newElement += '</select>';
 
-                  newElement += '</div> </div>'
+                  newElement += '</div> </div>';
+
+                } else {
+
+                  newElement += ' <div class="form-group">';
+                  newElement += '<label for="' + parameter["name"] + 'PAS" class="col-sm-4 control-label">' + parameter["name"] + '</label>';
+                  newElement += '<div class="col-sm-5">';
+                  if (parameter["default"]) {
+                    newElement += '<input type="text" class="form-control" id="' + parameter["name"] + 'PAS" value="' + parameter["default"] + '">';
+                  } else {
+                    newElement += '<input type="text" class="form-control" id="' + parameter["name"] + 'PAS">';
+                  }
+                  newElement += '<small id="' + parameter["name"] + 'HelpBlock" class="form-text text-muted">';
+                  newElement += "Type: " + parameter["type"];
+                  newElement += '</small>';
+                  newElement += '</div> </div>';
 
                 }
-
 
               }
             }
@@ -308,15 +324,22 @@ function getPlan(taskID, retryNum) {
 function runPAS() {
   var domText = window.ace.edit($('#domainPASSelection').find(':selected').val()).getSession().getValue();
   var probText = window.ace.edit($('#problemPASSelection').find(':selected').val()).getSession().getValue();
+  var planText = "";
+
+  var valcall = ! ($('#planPASSelectionGroup').hasClass('hidden'));
+  if (valcall) {
+    planText = window.ace.edit($('#planPASSelection').find(':selected').val()).getSession().getValue();
+  }
   var solverName = $('#solverPASSelection').find(':selected').val();
   window.toastr.info('Running remote planner...');
 
   var bodyData = {}
   bodyData["domain"] = domText
   bodyData["problem"] = probText
+  bodyData["plan"] = planText
 
   for (const parameter of window.paramatersPAS) {
-    if (parameter["name"] != "domain" && parameter["name"] != "problem") {
+    if (parameter["name"] != "domain" && parameter["name"] != "problem" && parameter["name"] != "plan") {
       var value = ""
       if (parameter["type"] != "categorical") {
         var value = $('#' + parameter["name"] + "PAS").val();
@@ -328,9 +351,15 @@ function runPAS() {
   }
   $('#chooseFilesPASModel').modal('toggle');
 
+  var solverURL = window.PASURL + "/package/" + solverName;
+  if (valcall)
+    solverURL += "/validate";
+  else
+    solverURL += "/solve";
+
   // Send task to the solver
   $.ajax({
-    url: window.PASURL + "/package/" + solverName + "/solve",
+    url: solverURL,
     type: "POST",
     contentType: 'application/json',
     data: JSON.stringify(bodyData)
