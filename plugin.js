@@ -290,6 +290,9 @@ function getPlan(taskID, retryNum) {
         })
             .done(function (res) {
 
+                console.log("Response from PaaS:");
+                console.log(res);
+
                 if (res['status'] === 'ok') {
                     window.toastr.success('Plan is ready');
                     for (plan of res["plans"]) {
@@ -417,8 +420,10 @@ function choosePASFiles(type) {
 
     var domain_list = domain_option_list + hr_line + unknown_option_list + hr_line + problem_option_list;
     var problem_list = problem_option_list + hr_line + unknown_option_list + hr_line + domain_option_list;
+    var plan_list = unknown_option_list + hr_line + domain_option_list + hr_line + problem_option_list;
     $('#domainPASSelection').html(domain_list);
     $('#problemPASSelection').html(problem_list);
+    $('#planPASSelection').html(plan_list);
     if (setDom)
         $('#domainPASSelection').val(window.last_domain);
     if (setProb)
